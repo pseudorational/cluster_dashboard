@@ -11,37 +11,28 @@ library(shiny)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-    
-    # Application title
-    titlePanel("Clustering with Iris"),
-    
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            numericInput("number_of_clusters",
-                         "Number of clusters",
-                         value=2,
-                         min = 1,
-                         max = 10,
-                         step = 1)
-        ),
-        
-        # Show a plot of the generated distribution
-        mainPanel(
+    h1("Clustering with Iris"),
+    numericInput("num_clust","Number of clusters",value=2,min = 1,max = 10,step = 1),
+            selectInput('x','Select x',choices = names(iris[,1:4]),'Sepal.Length'),
+            selectInput('y','Select y',choices = names(iris[,1:4]),'Sepal.Width'),
+     mainPanel(
             plotOutput("cluster_scatter")
         )
-    )
+    
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) { 
     output$cluster_scatter <- renderPlot({
         set.seed(1031)
-        k_clusters = kmeans(iris[,3:4],centers = input$number_of_clusters,iter.max = 100,nstart = 25)
+        k_clusters = kmeans(iris[,c(input$x,input$y)],centers = input$num_clust,iter.max = 100,nstart = 25)
         clusters = k_clusters$cluster
         library(ggplot2)
-        ggplot(data=cbind(iris[,3:5], clusters),aes(x=Petal.Length,y=Petal.Width,shape=Species, color=factor(clusters)))+
-            geom_point()
+        df = data.frame(x = iris[,input$x],y = iris[,input$y], clusters, Species = iris$Species)
+        ggplot(df, aes(x,y,shape=Species, color=factor(clusters)))+
+                   geom_point()
+        #ggplot(data=cbind(iris, clusters),aes(x=noquote(input$x),y=Sepal.Width,shape=Species, color=factor(clusters)))+
+        #    geom_point()
     })
 }    
 # Run the application 
